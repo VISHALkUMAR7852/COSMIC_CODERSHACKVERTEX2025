@@ -24,5 +24,11 @@ export interface User {
   username: string;
   name: string;
   email: string;
-  password?: string; // Password might be optional depending on context (e.g., if fetched from a secure source)
+  password?: string;
+}
+
+declare global {
+  interface Window {
+    webkitSpeechRecognition: any;
+  }
 }

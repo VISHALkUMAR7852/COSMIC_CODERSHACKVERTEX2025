@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane, faRobot, faUser, faMicrophone, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faRobot, faUser, faMicrophone, faSpinner, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
 import { generateAIResponse } from '../services/aiService';
 import { Message } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { useVoiceAssistant } from '../hooks/useVoiceAssistant';
 
 const ChatbotPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -11,6 +12,19 @@ const ChatbotPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const [isTyping, setIsTyping] = useState(false);
+
+  const { isListening, error, startListening, stopListening } = useVoiceAssistant({
+    onResult: (transcript) => {
+      setInputValue(transcript);
+      handleSendMessage(transcript);
+    },
+    onStart: () => {
+      // Show visual feedback that we're listening
+    },
+    onEnd: () => {
+      // Clean up any visual feedback
+    }
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -21,24 +35,24 @@ const ChatbotPage: React.FC = () => {
   }, [messages]);
 
   useEffect(() => {
-    // Add welcome message
     if (messages.length === 0) {
       setMessages([{
         id: uuidv4(),
         role: 'assistant',
-        content: "Hello! I'm your AI Health Assistant. I can help you with general health questions, symptom information, and finding healthcare resources. How can I assist you today?",
+        content: "Hello! I'm your AI Health Assistant. I can help you with general health questions, symptom information, and finding healthcare resources. You can type your question or click the microphone icon to speak. How can I assist you today?",
         timestamp: new Date()
       }]);
     }
   }, []);
 
-  const handleSendMessage = async () => {
-    if (inputValue.trim() === '') return;
+  const handleSendMessage = async (text?: string) => {
+    const messageText = text || inputValue;
+    if (!messageText.trim()) return;
 
     const userMessage: Message = {
       id: uuidv4(),
       role: 'user',
-      content: inputValue,
+      content: messageText,
       timestamp: new Date()
     };
 
@@ -58,6 +72,14 @@ const ChatbotPage: React.FC = () => {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Text-to-speech for the response
+      if ('speechSynthesis' in window) {
+        const speech = new SpeechSynthesisUtterance(response);
+        speech.rate = 0.9;
+        speech.pitch = 1;
+        window.speechSynthesis.speak(speech);
+      }
     } catch (error) {
       console.error('Error generating response:', error);
       const errorMessage: Message = {
@@ -70,6 +92,14 @@ const ChatbotPage: React.FC = () => {
     } finally {
       setIsLoading(false);
       setIsTyping(false);
+    }
+  };
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
     }
   };
 
@@ -142,10 +172,18 @@ const ChatbotPage: React.FC = () => {
         <div className="bg-white border-t border-gray-200 p-4">
           <div className="flex items-center space-x-4">
             <button
-              className="flex-shrink-0 text-gray-400 hover:text-green-600 transition-colors"
-              title="Voice input (coming soon)"
+              onClick={toggleVoiceInput}
+              className={`flex-shrink-0 p-3 rounded-full transition-all ${
+                isListening
+                  ? 'bg-red-500 text-white animate-pulse'
+                  : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
+              }`}
+              title={isListening ? 'Stop voice input' : 'Start voice input'}
             >
-              <FontAwesomeIcon icon={faMicrophone} className="text-xl" />
+              <FontAwesomeIcon 
+                icon={isListening ? faMicrophoneSlash : faMicrophone} 
+                className="text-xl"
+              />
             </button>
             <div className="flex-grow relative">
               <input
@@ -153,16 +191,19 @@ const ChatbotPage: React.FC = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Type your health question..."
+                placeholder={isListening ? 'Listening...' : 'Type your health question...'}
                 className="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                disabled={isLoading}
+                disabled={isLoading || isListening}
               />
+              {error && (
+                <p className="absolute -bottom-6 left-0 text-xs text-red-500">{error}</p>
+              )}
             </div>
             <button
-              onClick={handleSendMessage}
-              disabled={isLoading || !inputValue.trim()}
+              onClick={() => handleSendMessage()}
+              disabled={isLoading || (!inputValue.trim() && !isListening)}
               className={`flex-shrink-0 ${
-                isLoading || !inputValue.trim()
+                isLoading || (!inputValue.trim() && !isListening)
                   ? 'bg-gray-300 cursor-not-allowed'
                   : 'bg-green-600 hover:bg-green-700'
               } text-white rounded-full p-3 transition-colors`}
