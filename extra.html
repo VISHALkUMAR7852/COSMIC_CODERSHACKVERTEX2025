@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rural Health Assistant | AI + Voice Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7fafc;
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(74, 222, 128, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+            }
+        }
+        
+        .typing-indicator {
+            display: inline-block;
+        }
+        
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #4b5563;
+            margin-right: 3px;
+            animation: typing 1s infinite ease-in-out;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .health-card:hover {
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-heartbeat text-green-500 text-2xl mr-2"></i>
+                        <span class="text-xl font-bold text-gray-800">Rural Health Assistant</span>
+                    </div>
+                </div>
+                <div class="hidden md:ml-6 md:flex md:items-center md:space-x-8">
+                    <a href="#" class="text-green-600 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Services</a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">Resources</a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">About</a>
+                    <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300">
+                        <i class="fas fa-user-plus mr-1"></i> Sign Up
+                    </button>
+                </div>
+                <div class="-mr-2 flex items-center md:hidden">
+                    <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative bg-white overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+                <div class="pt-10 sm:pt-16 lg:pt-8 lg:pb-14 lg:overflow-hidden">
+                    <div class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+                        <div class="sm:text-center lg:text-left">
+                            <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                                <span class="block">AI-Powered</span>
+                                <span class="block text-green-500">Rural Health Assistant</span>
+                            </h1>
+                            <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                                Bridging the healthcare gap in rural areas with voice-enabled AI assistance, providing instant medical guidance and connecting communities with vital health resources.
+                            </p>
+                            <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                                <div class="rounded-md shadow">
+                                    <button id="voiceAssistantBtn" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-500 hover:bg-green-600 md:py-4 md:text-lg md:px-10 transition duration-300">
+                                        <i class="fas fa-microphone mr-2"></i> Start Voice Assistant
+                                    </button>
+                                </div>
+                                <div class="mt-3 sm:mt-0 sm:ml-3">
+                                    <button class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 md:py-4 md:text-lg md:px-10 transition duration-300">
+                                        <i class="fas fa-mobile-alt mr-2"></i> Download App
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 hidden lg:block">
+            <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="https://images.unsplash.com/photo-1581056771107-24ca5f033842?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Rural healthcare">
+        </div>
+    </div>
+
+    <!-- Voice Assistant Modal -->
+    <div id="voiceAssistantModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                    <i class="fas fa-microphone-alt text-green-500 mr-2"></i> Health Assistant
+                                </h3>
+                                <button id="closeModalBtn" type="button" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="mt-2">
+                                <div id="chatContainer" class="h-64 overflow-y-auto p-4 bg-gray-50 rounded-lg mb-4">
+                                    <div class="flex mb-4">
+                                        <div class="flex-shrink-0 mr-3">
+                                            <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                                                <i class="fas fa-robot text-green-500"></i>
+                                            </div>
+                                        </div>
+                                        <div class="bg-white p-3 rounded-lg shadow-sm max-w-xs">
+                                            <p class="text-sm text-gray-800">Hello! I'm your Rural Health Assistant. How can I help you today? You can ask me about symptoms, medicines, or find nearby health centers.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="voiceStatus" class="flex items-center justify-center mb-4">
+                                    <div id="listeningIndicator" class="hidden items-center">
+                                        <div class="pulse-animation h-8 w-8 rounded-full bg-green-500 flex items-center justify-center mr-2">
+                                            <i class="fas fa-microphone text-white"></i>
+                                        </div>
+                                        <span class="text-sm text-gray-600">Listening...</span>
+                                    </div>
+                                    <div id="processingIndicator" class="hidden items-center">
+                                        <div class="typing-indicator mr-2">
+                                            <span></span>
+                                            <span></span>
+                                            <span></span>
+                                        </div>
+                                        <span class="text-sm text-gray-600">Processing your request...</span>
+                                    </div>
+                                </div>
+                                <div class="flex">
+                                    <button id="startListeningBtn" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-l-lg focus:outline-none transition duration-300">
+                                        <i class="fas fa-microphone mr-2"></i> Speak Now
+                                    </button>
+                                    <button id="typeInsteadBtn" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-r-lg focus:outline-none transition duration-300">
+                                        <i class="fas fa-keyboard mr-2"></i> Type Instead
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="py-12 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center">
+                <h2 class="text-base text-green-500 font-semibold tracking-wide uppercase">Features</h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                    Comprehensive Rural Health Solutions
+                </p>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+                    Our AI-powered platform brings healthcare to your fingertips, even in the most remote areas.
+                </p>
+            </div>
+
+            <div class="mt-10">
+                <div class="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="health-card bg-white overflow-hidden shadow rounded-lg transition duration-300">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
+                                    <i class="fas fa-microphone-alt text-green-500 text-xl"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <h3 class="text-lg font-medium text-gray-900">Voice Interface</h3>
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        Speak naturally in your local language to get instant health advice without needing to type.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="health-card bg-white overflow-hidden shadow rounded-lg transition duration-300">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
+                                    <i class="fas fa-brain text-blue-500 text-xl"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <h3 class="text-lg font-medium text-gray-900">AI Symptom Checker</h3>
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        Describe your symptoms and get preliminary assessments with recommended actions.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="health-card bg-white overflow-hidden shadow rounded-lg transition duration-300">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
+                                    <i class="fas fa-map-marker-alt text-purple-500 text-xl"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <h3 class="text-lg font-medium text-gray-900">Health Facility Locator</h3>
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        Find the nearest clinics, hospitals, and pharmacies with directions and contact details.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="health-card bg-white overflow-hidden shadow rounded-lg transition duration-300">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-yellow-100 rounded-md p-3">
+                                    <i class="fas fa-pills text-yellow-500 text-xl"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <h3 class="text-lg font-medium text-gray-900">Medicine Information</h3>
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        Get details about medications, dosages, side effects, and alternatives available locally.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="health-card bg-white overflow-hidden shadow rounded-lg transition duration-300">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-red-100 rounded-md p-3">
+                                    <i class="fas fa-calendar-check text-red-500 text-xl"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <h3 class="text-lg font-medium text-gray-900">Vaccination Reminders</h3>
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        Never miss important vaccinations with personalized reminders for you and your family.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="health-card bg-white overflow-hidden shadow rounded-lg transition duration-300">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-indigo-100 rounded-md p-3">
+                                    <i class="fas fa-language text-indigo-500 text-xl"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <h3 class="text-lg font-medium text-gray-900">Multilingual Support</h3>
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        Available in multiple regional languages to ensure accessibility for all communities.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="py-12 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center">
+                <h2 class="text-base text-green-500 font-semibold tracking-wide uppercase">Process</h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                    Simple Steps to Better Health
+                </p>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+                    Getting health assistance has never been easier, even without internet access.
+                </p>
+            </div>
+
+            <div class="mt-10">
+                <div class="relative">
+                    <div class="absolute left-1/2 -ml-1 h-full w-0.5 bg-gray-200" aria-hidden="true"></div>
+                    <div class="relative space-y-8">
+                        <div class="flex flex-col md:flex-row items-center">
+                            <div class="flex-shrink-0 w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                                <span class="text-green-500 text-xl font-bold">1</span>
+                            </div>
+                            <div class="mt-4 md:mt-0 md:ml-6">
+                                <h3 class="text-lg font-medium text-gray-900">Activate the Assistant</h3>
+                                <p class="mt-2 text-base text-gray-500">
+                                    Press the microphone button or say the wake word to start interacting with the health assistant.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row items-center">
+                            <div class="flex-shrink-0 w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span class="text-blue-500 text-xl font-bold">2</span>
+                            </div>
+                            <div class="mt-4 md:mt-0 md:ml-6">
+                                <h3 class="text-lg font-medium text-gray-900">Describe Your Concern</h3>
+                                <p class="mt-2 text-base text-gray-500">
+                                    Speak naturally about your symptoms, medication questions, or need to find healthcare services.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row items-center">
+                            <div class="flex-shrink-0 w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center">
+                                <span class="text-purple-500 text-xl font-bold">3</span>
+                            </div>
+                            <div class="mt-4 md:mt-0 md:ml-6">
+                                <h3 class="text-lg font-medium text-gray-900">Receive Guidance</h3>
+                                <p class="mt-2 text-base text-gray-500">
+                                    Get immediate, evidence-based health information tailored to your specific situation.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row items-center">
+                            <div class="flex-shrink-0 w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center">
+                                <span class="text-yellow-500 text-xl font-bold">4</span>
+                            </div>
+                            <div class="mt-4 md:mt-0 md:ml-6">
+                                <h3 class="text-lg font-medium text-gray-900">Take Action</h3>
+                                <p class="mt-2 text-base text-gray-500">
+                                    Follow the recommended steps, whether it's home care, visiting a clinic, or emergency action.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Testimonials Section -->
+    <div class="py-12 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center">
+                <h2 class="text-base text-green-500 font-semibold tracking-wide uppercase">Testimonials</h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                    Trusted by Rural Communities
+                </p>
+            </div>
+
+            <div class="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center mb-4">
+                        <div class="flex-shrink-0">
+                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="Testimonial">
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Asha Patel</h4>
+                            <p class="text-sm text-gray-500">Village Health Worker</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600">
+                        "This assistant has transformed how we provide care in our village. Even when I'm not available, people can get reliable health advice in our local language."
+                    </p>
+                    <div class="mt-4 flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center mb-4">
+                        <div class="flex-shrink-0">
+                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="Testimonial">
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Rajesh Kumar</h4>
+                            <p class="text-sm text-gray-500">Farmer</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600">
+                        "When my son had high fever at night, the assistant guided us through first aid steps and helped us find the nearest 24-hour clinic. It saved us precious time."
+                    </p>
+                    <div class="mt-4 flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center mb-4">
+                        <div class="flex-shrink-0">
+                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="Testimonial">
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-sm font-semibold text-gray-900">Dr. Priya Sharma</h4>
+                            <p class="text-sm text-gray-500">District Medical Officer</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600">
+                        "The AI assistant helps triage cases effectively, reducing unnecessary clinic visits while ensuring serious conditions get immediate attention. A game-changer for rural healthcare."
+                    </p>
+                    <div class="mt-4 flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="bg-green-600">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
+            <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                <span class="block">Ready to improve rural healthcare?</span>
+                <span class="block text-green-200">Start using the Health Assistant today.</span>
+            </h2>
+            <div class="mt-8 flex lg:mt-0 lg:flex-shrink-0">
+                <div class="inline-flex rounded-md shadow">
+                    <button id="ctaVoiceBtn" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-green-600 bg-white hover:bg-green-50 transition duration-300">
+                        <i class="fas fa-microphone mr-2"></i> Try Voice Assistant
+                    </button>
+                </div>
+                <div class="ml-3 inline-flex rounded-md shadow">
+                    <a href="#" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-500 hover:bg-green-700 transition duration-300">
+                        <i class="fas fa-download mr-2"></i> Download App
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-300 tracking-wider uppercase">Solutions</h3>
+                    <ul class="mt-4 space-y-4">
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">For Villages</a></li>
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">For Health Workers</a></li>
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">For NGOs</a></li>
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">For Governments</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-300 tracking-wider uppercase">Support</h3>
+                    <ul class="mt-4 space-y-4">
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">Help Center</a></li>
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">Training</a></li>
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">Community</a></li>
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-300 tracking-wider uppercase">Company</h3>
+                    <ul class="mt-4 space-y-4">
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">About</a></li>
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">Team</a></li>
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">Partners</a></li>
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">Careers</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-300 tracking-wider uppercase">Connect</h3>
+                    <ul class="mt-4 space-y-4">
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">Facebook</a></li>
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">Twitter</a></li>
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">Instagram</a></li>
+                        <li><a href="#" class="text-base text-gray-400 hover:text-white">LinkedIn</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 border-t border-gray-700 pt-8 md:flex md:items-center md:justify-between">
+                <div class="flex space-x-6 md:order-2">
+                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+                <p class="mt-8 text-base text-gray-400 md:mt-0 md:order-1">
+                    &copy; 2023 Rural Health Assistant. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Voice Button -->
+    <button id="floatingVoiceBtn" class="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition duration-300">
+        <i class="fas fa-microphone text-xl"></i>
+    </button>
+
+    <script>
+        // Voice Assistant Modal Functionality
+        const voiceAssistantBtn = document.getElementById('voiceAssistantBtn');
+        const ctaVoiceBtn = document.getElementById('ctaVoiceBtn');
+        const floatingVoiceBtn = document.getElementById('floatingVoiceBtn');
+        const voiceAssistantModal = document.getElementById('voiceAssistantModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const startListeningBtn = document.getElementById('startListeningBtn');
+        const typeInsteadBtn = document.getElementById('typeInsteadBtn');
+        const listeningIndicator = document.getElementById('listeningIndicator');
+        const processingIndicator = document.getElementById('processingIndicator');
+        const chatContainer = document.getElementById('chatContainer');
+        
+        // Open modal from various buttons
+        [voiceAssistantBtn, ctaVoiceBtn, floatingVoiceBtn].forEach(btn => {
+            btn.addEventListener('click', () => {
+                voiceAssistantModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+        
+        // Close modal
+        closeModalBtn.addEventListener('click', () => {
+            voiceAssistantModal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            stopListening();
+        });
+        
+        // Start/stop listening
+        let isListening = false;
+        
+        startListeningBtn.addEventListener('click', () => {
+            if (!isListening) {
+                startListening();
+            } else {
+                stopListening();
+            }
+        });
+        
+        function startListening() {
+            isListening = true;
+            startListeningBtn.innerHTML = '<i class="fas fa-stop mr-2"></i> Stop Listening';
+            startListeningBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+            startListeningBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+            listeningIndicator.classList.remove('hidden');
+            processingIndicator.classList.add('hidden');
+            
+            // Simulate voice recognition after 3 seconds
+            setTimeout(() => {
+                stopListening();
+                simulateUserQuery();
+            }, 3000);
+        }
+        
+        function stopListening() {
+            isListening = false;
+            startListeningBtn.innerHTML = '<i class="fas fa-microphone mr-2"></i> Speak Now';
+            startListeningBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+            startListeningBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+            listeningIndicator.classList.add('hidden');
+        }
+        
+        function simulateUserQuery() {
+            processingIndicator.classList.remove('hidden');
+            
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'flex justify-end mb-4 slide-in';
+            userMessage.innerHTML = `
+                <div class="flex-shrink-0 ml-3">
+                    <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i class="fas fa-user text-blue-500"></i>
+                    </div>
+                </div>
+                <div class="bg-blue-500 text-white p-3 rounded-lg shadow-sm max-w-xs">
+                    <p class="text-sm">I have a headache and fever since yesterday. What should I do?</p>
+                </div>
+            `;
+            chatContainer.appendChild(userMessage);
+            
+            // Scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // Simulate AI response after delay
+            setTimeout(() => {
+                processingIndicator.classList.add('hidden');
+                
+                const aiResponse = document.createElement('div');
+                aiResponse.className = 'flex mb-4 slide-in';
+                aiResponse.innerHTML = `
+                    <div class="flex-shrink-0 mr-3">
+                        <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                            <i class="fas fa-robot text-green-500"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg shadow-sm max-w-xs">
+                        <p class="text-sm text-gray-800">For headache and fever, I recommend:</p>
+                        <ul class="mt-2 text-sm text-gray-800 list-disc pl-5 space-y-1">
+                            <li>Rest and drink plenty of fluids</li>
+                            <li>Take paracetamol (500mg every 6 hours as needed)</li>
+                            <li>Use a cool compress for the headache</li>
+                            <li>Monitor your temperature</li>
+                        </ul>
+                        <p class="mt-2 text-sm text-gray-800">If fever persists beyond 3 days or exceeds 39°C, please visit the nearest health center.</p>
+                        <div class="mt-3">
+                            <button class="text-xs bg-green-100 hover:bg-green-200 text-green-800 px-2 py-1 rounded">
+                                <i class="fas fa-map-marker-alt mr-1"></i> Find Nearby Clinics
+                            </button>
+                        </div>
+                    </div>
+                `;
+                chatContainer.appendChild(aiResponse);
+                
+                // Scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 2000);
+        }
+        
+        // Type instead functionality
+        typeInsteadBtn.addEventListener('click', () => {
+            alert('In a full implementation, this would open a text input field for typing questions.');
+        });
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target === voiceAssistantModal) {
+                voiceAssistantModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+                stopListening();
+            }
+        });
+    </script>
+</body>
+</html>
