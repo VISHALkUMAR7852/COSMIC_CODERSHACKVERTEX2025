@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Heart, Brain, FirstAid } from 'lucide-react';
+import { X, Heart, Brain, ChevronFirst as FirstAid } from 'lucide-react';
 
 const WelcomeNotification: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
